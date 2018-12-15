@@ -3,6 +3,5 @@
 members = [
   "game",
   "board",
-  "piece",
   "eval",
 ]
