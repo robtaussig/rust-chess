@@ -1,7 +1,7 @@
 extern crate arrayvec;
 use arrayvec::ArrayVec;
 pub mod square;
-pub use self::square::{ Square, Piece, Color, Move, Turn };
+pub use self::square::{ Square, Piece, Color, Move, Turn, PieceType };
 
 pub struct Board {
     pub squares: ArrayVec<[Square; 100]>,
@@ -80,18 +80,18 @@ pub mod helpers {
 
     pub fn generate_square_from_string(square: char) -> Square {
         match square {
-            'p' => Square::new(Piece::Pawn(Color::Black)),
-            'P' => Square::new(Piece::Pawn(Color::White)),
-            'b' => Square::new(Piece::Bishop(Color::Black)),
-            'B' => Square::new(Piece::Bishop(Color::White)),
-            'n' => Square::new(Piece::Knight(Color::Black)),
-            'N' => Square::new(Piece::Knight(Color::White)),
-            'r' => Square::new(Piece::Rook(Color::Black)),
-            'R' => Square::new(Piece::Rook(Color::White)),
-            'q' => Square::new(Piece::Queen(Color::Black)),
-            'Q' => Square::new(Piece::Queen(Color::White)),
-            'k' => Square::new(Piece::King(Color::Black)),
-            'K' => Square::new(Piece::King(Color::White)),
+            'p' => Square::new(Piece::new(PieceType::Pawn, Color::Black)),
+            'P' => Square::new(Piece::new(PieceType::Pawn, Color::White)),
+            'b' => Square::new(Piece::new(PieceType::Bishop, Color::Black)),
+            'B' => Square::new(Piece::new(PieceType::Bishop, Color::White)),
+            'n' => Square::new(Piece::new(PieceType::Knight, Color::Black)),
+            'N' => Square::new(Piece::new(PieceType::Knight, Color::White)),
+            'r' => Square::new(Piece::new(PieceType::Rook, Color::Black)),
+            'R' => Square::new(Piece::new(PieceType::Rook, Color::White)),
+            'q' => Square::new(Piece::new(PieceType::Queen, Color::Black)),
+            'Q' => Square::new(Piece::new(PieceType::Queen, Color::White)),
+            'k' => Square::new(Piece::new(PieceType::King, Color::Black)),
+            'K' => Square::new(Piece::new(PieceType::King, Color::White)),
             '0' => Square{ piece: None, is_edge: true },
             '-' => Square{ piece: None, is_edge: false },
             _ => panic!("Received piece char other than accepted values")
@@ -169,7 +169,7 @@ mod tests {
             let square_char = "r".chars().next().unwrap();
             let square: Square = helpers::generate_square_from_string(square_char);
             match square.piece {
-                Some(p) => assert!(p == Piece::Rook(Color::Black)),
+                Some(p) => assert_eq!(p, Piece { piece_type: PieceType::Rook, color: Color::Black }),
                 None => panic!("Expected Piece not found"),
             }
         }
@@ -179,7 +179,7 @@ mod tests {
             let square_char = "R".chars().next().unwrap();
             let square: Square = helpers::generate_square_from_string(square_char);
             match square.piece {
-                Some(p) => assert!(p == Piece::Rook(Color::White)),
+                Some(p) => assert_eq!(p, Piece { piece_type: PieceType::Rook, color: Color::White }),
                 None => panic!("Expected Piece not found"),
             }
         }
@@ -266,13 +266,19 @@ mod tests {
             fn it_sets_the_target_index_to_piece() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
                 let mut board: Board = helpers::generate_board(board_string);
-                assert_eq!(board.get_piece_at(15), Some(Piece::King(Color::Black)));
-                board.set_square(15, Some(Piece::Pawn(Color::White)));
-                board.set_square(15, Some(Piece::Pawn(Color::White)));
-                board.set_square(15, Some(Piece::Pawn(Color::White)));
-                board.set_square(15, Some(Piece::Pawn(Color::White)));
-                board.set_square(15, Some(Piece::Pawn(Color::White)));
-                assert_eq!(board.get_piece_at(15), Some(Piece::Pawn(Color::White)));
+                assert!(match board.get_piece_at(15) {
+                    Some(p) => p == Piece { piece_type: PieceType::King, color: Color::Black },
+                    None => false,
+                });                
+                board.set_square(15, Some(Piece::new(PieceType::King, Color::White)));
+                board.set_square(15, Some(Piece::new(PieceType::King, Color::White)));
+                board.set_square(15, Some(Piece::new(PieceType::King, Color::White)));
+                board.set_square(15, Some(Piece::new(PieceType::King, Color::White)));
+                board.set_square(15, Some(Piece::new(PieceType::King, Color::White)));
+                assert!(match board.get_piece_at(15) {
+                    Some(p) => p == Piece { piece_type: PieceType::King, color: Color::White },
+                    None => false,
+                });
             }
         }
 
@@ -308,7 +314,10 @@ mod tests {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
                 let mut board: Board = helpers::generate_board(board_string);
                 board.make_move(Move { from: 75, to: 55 });
-                assert_eq!(board.get_piece_at(55), Some(Piece::Pawn(Color::White)));
+                assert!(match board.get_piece_at(55) {
+                    Some(p) => p == Piece { piece_type: PieceType::Pawn, color: Color::White },
+                    None => false,
+                })
             }
 
             #[test]
