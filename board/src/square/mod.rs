@@ -92,50 +92,76 @@ impl Turn {
 mod valid_moves {
     use super::{ Board, Rc, Move };
 
+    #[allow(unused)]
+    const BISHOP_MOVE_DIRECTIONS: [i8; 4] = [9, 11, -9, -11];
+    #[allow(unused)]
+    const KNIGHT_STEPPING_MOVES: [i8; 8] = [-12, -21, -19, -8, 12, 21, 19, 8];
+    #[allow(unused)]
+    const KING_QUEEN_MOVE_DIRECTIONS: [i8; 8] = [-1, -11, -10, -9, 1, 11, 10, 9];
+    #[allow(unused)]
+    const ROOK_MOVE_DIRECTIONS: [i8; 4] = [-1, 1, -10, 10];
+    #[allow(unused)]
+    const WHITE_PAWN_MOVE_DIRECTIONS: [i8; 1] = [-10];
+    #[allow(unused)]
+    const BLACK_PAWN_MOVE_DIRECTIONS: [i8; 1] = [10];
+
+    #[allow(unused)]
     pub fn get_white_pawn_moves(board_index: usize, board: Rc<Board>) -> Vec<Move> {
+        
         Vec::new()
     }
 
+    #[allow(unused)]
     pub fn get_black_pawn_moves(board_index: usize, board: Rc<Board>) -> Vec<Move> {
         Vec::new()
     }
 
+    #[allow(unused)]
     pub fn get_white_knight_moves(board_index: usize, board: Rc<Board>) -> Vec<Move> {
         Vec::new()
     }
 
+    #[allow(unused)]
     pub fn get_black_knight_moves(board_index: usize, board: Rc<Board>) -> Vec<Move> {
         Vec::new()
     }
 
+    #[allow(unused)]
     pub fn get_white_bishop_moves(board_index: usize, board: Rc<Board>) -> Vec<Move> {
         Vec::new()
     }
 
+    #[allow(unused)]
     pub fn get_black_bishop_moves(board_index: usize, board: Rc<Board>) -> Vec<Move> {
         Vec::new()
     }
 
+    #[allow(unused)]
     pub fn get_white_rook_moves(board_index: usize, board: Rc<Board>) -> Vec<Move> {
         Vec::new()
     }
 
+    #[allow(unused)]
     pub fn get_black_rook_moves(board_index: usize, board: Rc<Board>) -> Vec<Move> {
         Vec::new()
     }
 
+    #[allow(unused)]
     pub fn get_white_queen_moves(board_index: usize, board: Rc<Board>) -> Vec<Move> {
         Vec::new()
     }
 
+    #[allow(unused)]
     pub fn get_black_queen_moves(board_index: usize, board: Rc<Board>) -> Vec<Move> {
         Vec::new()
     }
 
+    #[allow(unused)]
     pub fn get_white_king_moves(board_index: usize, board: Rc<Board>) -> Vec<Move> {
         Vec::new()
     }
 
+    #[allow(unused)]
     pub fn get_black_king_moves(board_index: usize, board: Rc<Board>) -> Vec<Move> {
         Vec::new()
     }
@@ -143,5 +169,110 @@ mod valid_moves {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
 
+    mod valid_moves {
+        use super::*;
+
+        mod get_white_pawn_moves {            
+
+            #[test]
+            fn it_should_return_a_list_of_moves() {
+                assert!(true);       
+            }
+        }
+
+        mod get_black_pawn_moves {            
+
+            #[test]
+            fn it_should_return_a_list_of_moves() {
+                assert!(true);       
+            }
+        }
+
+        mod get_white_knight_moves {
+            use super::*;        
+    
+            #[test]
+            fn it_should_return_a_list_of_moves() {
+                let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
+                let mut board: Board = helpers::generate_board(board_string);
+                let knight = board.get_piece_at(82 as usize);
+                println!("{:?}", knight);
+                assert!(true);       
+            }
+        }
+
+        mod get_black_knight_moves {            
+
+            #[test]
+            fn it_should_return_a_list_of_moves() {
+                assert!(true);       
+            }
+        }
+
+        mod get_white_bishop_moves {            
+
+            #[test]
+            fn it_should_return_a_list_of_moves() {
+                assert!(true);       
+            }
+        }
+
+        mod get_black_bishop_moves {            
+
+            #[test]
+            fn it_should_return_a_list_of_moves() {
+                assert!(true);       
+            }
+        }
+
+        mod get_white_rook_moves {            
+
+            #[test]
+            fn it_should_return_a_list_of_moves() {
+                assert!(true);       
+            }
+        }
+
+        mod get_black_rook_moves {            
+
+            #[test]
+            fn it_should_return_a_list_of_moves() {
+                assert!(true);       
+            }
+        }
+
+        mod get_white_queen_moves {            
+
+            #[test]
+            fn it_should_return_a_list_of_moves() {
+                assert!(true);       
+            }
+        }
+
+        mod get_black_queen_moves {            
+
+            #[test]
+            fn it_should_return_a_list_of_moves() {
+                assert!(true);       
+            }
+        }
+
+        mod get_white_king_moves {            
+
+            #[test]
+            fn it_should_return_a_list_of_moves() {
+                assert!(true);       
+            }
+        }
+
+        mod get_black_king_moves {            
+
+            #[test]
+            fn it_should_return_a_list_of_moves() {
+                assert!(true);       
+            }
+        }
+    }
 }

@@ -14,8 +14,12 @@ impl Board {
         Board { squares, current_turn: Turn { color } }
     }
 
-    pub fn get_legal_moves() -> Vec<Move> {
-        Vec::new()
+    #[allow(unused)]
+    pub fn get_legal_moves(&self) -> Vec<Move> {
+        let mut legal_moves: Vec<Move> = Vec::new();
+
+        //TODO
+        legal_moves
     }
 
     pub fn get_piece_at(&self, index: usize) -> Option<Piece> {
@@ -244,7 +248,6 @@ mod tests {
         use super::*;
 
         mod get_legal_moves {
-            use super::*;
 
         }
 
