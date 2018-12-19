@@ -268,11 +268,32 @@ mod tests {
                 assert!(match board.get_piece_at(15) {
                     Some(p) => p == Piece { piece_type: PieceType::King, color: Color::Black },
                     None => false,
-                });                
+                });
+
                 board.set_square(15, Some(Piece::new(PieceType::King, Color::White)));
+                assert!(match board.get_piece_at(15) {
+                    Some(p) => p == Piece { piece_type: PieceType::King, color: Color::White },
+                    None => false,
+                });
+
+                board.set_square(15, Some(Piece::new(PieceType::King, Color::Black)));
+                assert!(match board.get_piece_at(15) {
+                    Some(p) => p == Piece { piece_type: PieceType::King, color: Color::Black },
+                    None => false,
+                });
+  
                 board.set_square(15, Some(Piece::new(PieceType::King, Color::White)));
-                board.set_square(15, Some(Piece::new(PieceType::King, Color::White)));
-                board.set_square(15, Some(Piece::new(PieceType::King, Color::White)));
+                assert!(match board.get_piece_at(15) {
+                    Some(p) => p == Piece { piece_type: PieceType::King, color: Color::White },
+                    None => false,
+                });
+
+                board.set_square(15, Some(Piece::new(PieceType::King, Color::Black)));
+                assert!(match board.get_piece_at(15) {
+                    Some(p) => p == Piece { piece_type: PieceType::King, color: Color::Black },
+                    None => false,
+                });
+
                 board.set_square(15, Some(Piece::new(PieceType::King, Color::White)));
                 assert!(match board.get_piece_at(15) {
                     Some(p) => p == Piece { piece_type: PieceType::King, color: Color::White },
