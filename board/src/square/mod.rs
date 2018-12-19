@@ -222,7 +222,7 @@ mod tests {
         mod get_white_pawn_moves {            
 
             #[test]
-            fn it_should_return_a_list_of_moves_from_startin_position() {
+            fn it_should_return_a_list_of_moves_from_starting_position() {
                 assert!(true);       
             }
         }
@@ -230,7 +230,7 @@ mod tests {
         mod get_black_pawn_moves {            
 
             #[test]
-            fn it_should_return_a_list_of_moves_from_startin_position() {
+            fn it_should_return_a_list_of_moves_from_starting_position() {
                 assert!(true);       
             }
         }
@@ -239,7 +239,7 @@ mod tests {
             use super::*; 
     
             #[test]
-            fn it_should_return_a_list_of_moves_from_startin_position() {
+            fn it_should_return_a_list_of_moves_from_starting_position() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
                 let board: Board = helpers::generate_board(board_string);
                 let knight = board.get_piece_at(82 as usize).unwrap();
@@ -252,7 +252,7 @@ mod tests {
             use super::*;
 
             #[test]
-            fn it_should_return_a_list_of_moves_from_startin_position() {
+            fn it_should_return_a_list_of_moves_from_starting_position() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
                 let board: Board = helpers::generate_board(board_string);
                 let knight = board.get_piece_at(12 as usize).unwrap();
@@ -264,7 +264,7 @@ mod tests {
         mod get_white_bishop_moves {            
 
             #[test]
-            fn it_should_return_a_list_of_moves_from_startin_position() {
+            fn it_should_return_a_list_of_moves_from_starting_position() {
                 assert!(true);       
             }
         }
@@ -272,7 +272,7 @@ mod tests {
         mod get_black_bishop_moves {            
 
             #[test]
-            fn it_should_return_a_list_of_moves_from_startin_position() {
+            fn it_should_return_a_list_of_moves_from_starting_position() {
                 assert!(true);       
             }
         }
@@ -280,7 +280,7 @@ mod tests {
         mod get_white_rook_moves {            
 
             #[test]
-            fn it_should_return_a_list_of_moves_from_startin_position() {
+            fn it_should_return_a_list_of_moves_from_starting_position() {
                 assert!(true);       
             }
         }
@@ -288,7 +288,7 @@ mod tests {
         mod get_black_rook_moves {            
 
             #[test]
-            fn it_should_return_a_list_of_moves_from_startin_position() {
+            fn it_should_return_a_list_of_moves_from_starting_position() {
                 assert!(true);       
             }
         }
@@ -296,7 +296,7 @@ mod tests {
         mod get_white_queen_moves {            
 
             #[test]
-            fn it_should_return_a_list_of_moves_from_startin_position() {
+            fn it_should_return_a_list_of_moves_from_starting_position() {
                 assert!(true);       
             }
         }
@@ -304,7 +304,7 @@ mod tests {
         mod get_black_queen_moves {            
 
             #[test]
-            fn it_should_return_a_list_of_moves_from_startin_position() {
+            fn it_should_return_a_list_of_moves_from_starting_position() {
                 assert!(true);       
             }
         }
@@ -312,7 +312,7 @@ mod tests {
         mod get_white_king_moves {            
 
             #[test]
-            fn it_should_return_a_list_of_moves_from_startin_position() {
+            fn it_should_return_a_list_of_moves_from_starting_position() {
                 assert!(true);       
             }
         }
@@ -320,7 +320,7 @@ mod tests {
         mod get_black_king_moves {            
 
             #[test]
-            fn it_should_return_a_list_of_moves_from_startin_position() {
+            fn it_should_return_a_list_of_moves_from_starting_position() {
                 assert!(true);       
             }
         }
