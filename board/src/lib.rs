@@ -168,7 +168,7 @@ mod tests {
             let square_char = "r".chars().next().unwrap();
             let square: Square = helpers::generate_square_from_string(square_char);
             match square.piece {
-                Some(p) => assert_eq!(p, Piece { piece_type: PieceType::Rook, color: Color::Black }),
+                Some(p) => assert_eq!(p.color, Color::Black),
                 None => panic!("Expected Piece not found"),
             }
         }
@@ -196,7 +196,7 @@ mod tests {
 
         #[test]
         #[should_panic]
-        fn it_panics_when_board_has_two_many_squares() {
+        fn it_panics_when_board_has_too_many_squares() {
             let board_string_missing_one = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR000000000000");
             helpers::generate_board(board_string_missing_one);
         }
