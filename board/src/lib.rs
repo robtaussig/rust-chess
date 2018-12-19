@@ -27,10 +27,9 @@ impl Board {
     }
 
     pub fn set_square(&mut self, index: usize, piece: Option<Piece>) {
-        self.squares.remove(index);
         match piece {
-            Some(p) => self.squares.insert(index, Square::new(p)),
-            None => self.squares.insert(index, Square { piece: None, is_edge: false }),
+            Some(p) => self.squares[index] = Square::new(p),
+            None => self.squares[index] = Square { piece: None, is_edge: false },
         }
     }
 
