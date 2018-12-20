@@ -98,25 +98,78 @@ impl Turn {
 pub mod valid_moves {
     use super::{ Board, Rc, Move, Color };
 
-    #[allow(unused)]
     const BISHOP_MOVE_DIRECTIONS: [i8; 4] = [9, 11, -9, -11];
     const KNIGHT_STEPPING_MOVES: [i8; 8] = [-12, -21, -19, -8, 12, 21, 19, 8];
-    #[allow(unused)]
     const KING_QUEEN_MOVE_DIRECTIONS: [i8; 8] = [-1, -11, -10, -9, 1, 11, 10, 9];
     const ROOK_MOVE_DIRECTIONS: [i8; 4] = [-1, 1, -10, 10];
-    #[allow(unused)]
     const WHITE_PAWN_MOVE_DIRECTIONS: [i8; 1] = [-10];
-    #[allow(unused)]
+    const WHITE_PAWN_CAPTURE_DIRECTIONS: [i8; 2] = [-9, -11];
     const BLACK_PAWN_MOVE_DIRECTIONS: [i8; 1] = [10];
+    const BLACK_PAWN_CAPTURE_DIRECTIONS: [i8; 2] = [9, 11];
 
     pub fn is_out_of_bounds(board_index: i8) -> bool {
         board_index < 11 || board_index > 88 || board_index % 10 == 0 || board_index % 10 == 9
     }
 
-    #[allow(unused)]
     pub fn get_pawn_moves(board_index: i8, board: Rc<Board>, color: Color) -> Vec<Move> {
-        
-        Vec::new()
+        let move_directions: [i8; 1] = match color {
+            Color::White => WHITE_PAWN_MOVE_DIRECTIONS,
+            Color::Black => BLACK_PAWN_MOVE_DIRECTIONS,
+        };
+        let capture_directions: [i8; 2] = match color {
+            Color::White => WHITE_PAWN_CAPTURE_DIRECTIONS,
+            Color::Black => BLACK_PAWN_CAPTURE_DIRECTIONS,
+        };
+        let double_move_directions: [i8; 1] = match color {
+            Color::White => match board_index {
+                71 ... 78 => [-20],
+                _ => [0],
+            },
+            Color::Black => match board_index {
+                11 ... 18 => [20],
+                _ => [0],
+            },
+        };
+
+        println!("board_index: {:?}, color: {:?}, move_directions: {:?}, capture_directions: {:?}, double_move_directions: {:?}", board_index, color, move_directions, capture_directions, double_move_directions);
+        let legal_moves: Vec<Move> = move_directions.into_iter()
+            .map(|step| board_index + step)
+            .filter(|to| {
+                if is_out_of_bounds(*to) { return false; }
+                match board.get_piece_at(*to as usize) {
+                    Some(_) => false,
+                    None => true
+                }
+            })
+            .chain(
+                capture_directions.into_iter()
+                    .map(|step| board_index + step)
+                    .filter(|to| {
+                        if is_out_of_bounds(*to) { return false; }
+                        match board.get_piece_at(*to as usize) {
+                            Some(p) => p.color != color,
+                            None => false
+                        }
+                    })
+            )
+            .chain(
+                double_move_directions.into_iter()
+                    .map(|step| board_index + step)
+                    .filter(|to| {
+                        if is_out_of_bounds(*to) { return false; }
+                        match board.get_piece_at(*to as usize) {
+                            Some(_) => false,
+                            None => match board.get_piece_at((board_index as i8 + ((*to - board_index) / 2)) as usize) {
+                                Some(_) => false,
+                                None => true,
+                            }
+                        }
+                    })
+            )
+            .map(|to| Move::new(board_index as usize, to as usize))
+            .collect();
+
+        legal_moves
     }
 
     pub fn get_knight_moves(board_index: i8, board: Rc<Board>, color: Color) -> Vec<Move> {
@@ -185,14 +238,45 @@ pub mod valid_moves {
         legal_moves
     }
 
-    #[allow(unused)]
     pub fn get_queen_moves(board_index: i8, board: Rc<Board>, color: Color) -> Vec<Move> {
-        Vec::new()
+        let mut legal_moves: Vec<Move> = Vec::new();
+
+        for direction in KING_QUEEN_MOVE_DIRECTIONS.into_iter() {
+            let mut to: i8 = board_index;
+            loop {
+                to = to + direction;
+                if is_out_of_bounds(to) { break; }
+                match board.get_piece_at(to as usize) {
+                    Some(p) => {
+                        if p.color != color {
+                            legal_moves.push(Move::new(board_index as usize, to as usize));
+                        }
+                        break;
+                    },
+                    None => {
+                        legal_moves.push(Move::new(board_index as usize, to as usize));
+                    },
+                }
+            }
+        }
+
+        legal_moves
     }
 
-    #[allow(unused)]
     pub fn get_king_moves(board_index: i8, board: Rc<Board>, color: Color) -> Vec<Move> {
-        Vec::new()
+        let legal_moves: Vec<Move> = KING_QUEEN_MOVE_DIRECTIONS.into_iter()
+            .map(|step| board_index + step)
+            .filter(|to| {
+                if is_out_of_bounds(*to) { return false; }
+                match board.get_piece_at(*to as usize) {
+                    Some(p) => p.color != color,
+                    None => true
+                }
+            })
+            .map(|to| Move::new(board_index as usize, to as usize))
+            .collect();
+
+        legal_moves
     }
 }
 
@@ -204,10 +288,21 @@ mod tests {
         use super::*;
 
         mod get_pawn_moves {            
+            use super::*;
 
             #[test]
-            fn it_should_return_a_list_of_moves_from_starting_position() {
-                assert!(true);       
+            fn it_should_return_a_list_of_moves_from_a_given_position() {
+                let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
+                let mut board: Board = helpers::generate_board(board_string);
+                board.make_move(Move::from_chess_move((String::from("h2"), String::from("h4"))));
+                board.make_move(Move::from_chess_move((String::from("e7"), String::from("e5"))));
+                board.make_move(Move::from_chess_move((String::from("g2"), String::from("g4"))));
+                board.make_move(Move::from_chess_move((String::from("e5"), String::from("e4"))));
+                board.make_move(Move::from_chess_move((String::from("a2"), String::from("a4"))));
+                board.make_move(Move::from_chess_move((String::from("e4"), String::from("e3"))));
+                let pawn = board.get_piece_at(helpers::square_to_index(String::from("d2")) as usize).unwrap();
+                let legal_moves: Vec<Move> = pawn.get_moves(helpers::square_to_index(String::from("d2")) as usize, Rc::new(board));
+                assert_eq!(legal_moves.len(), 3);
             }
         }
 
@@ -215,7 +310,7 @@ mod tests {
             use super::*;
     
             #[test]
-            fn it_should_return_a_list_of_moves_from_starting_position() {
+            fn it_should_return_a_list_of_moves_from_a_given_position() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
                 let board: Board = helpers::generate_board(board_string);
                 let knight = board.get_piece_at(helpers::square_to_index(String::from("g1")) as usize).unwrap();
@@ -228,7 +323,7 @@ mod tests {
             use super::*;
 
             #[test]
-            fn it_should_return_a_list_of_moves_from_starting_position() {
+            fn it_should_return_a_list_of_moves_from_a_given_position() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
                 let mut board: Board = helpers::generate_board(board_string);
                 board.make_move(Move::from_chess_move((String::from("e2"), String::from("e4"))));
@@ -243,7 +338,7 @@ mod tests {
             use super::*;
 
             #[test]
-            fn it_should_return_a_list_of_moves_from_starting_position() {
+            fn it_should_return_a_list_of_moves_from_a_given_position() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
                 let mut board: Board = helpers::generate_board(board_string);
                 board.make_move(Move::from_chess_move((String::from("h2"), String::from("h4"))));
@@ -257,18 +352,35 @@ mod tests {
         }
 
         mod get_queen_moves {            
+            use super::*;
 
             #[test]
-            fn it_should_return_a_list_of_moves_from_starting_position() {
-                assert!(true);       
+            fn it_should_return_a_list_of_moves_from_a_given_position() {
+                let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
+                let mut board: Board = helpers::generate_board(board_string);
+                board.make_move(Move::from_chess_move((String::from("e2"), String::from("e4"))));
+                board.make_move(Move::from_chess_move((String::from("e7"), String::from("e5"))));
+                board.make_move(Move::from_chess_move((String::from("d1"), String::from("g4"))));
+                board.make_move(Move::from_chess_move((String::from("h7"), String::from("h4"))));
+                let queen = board.get_piece_at(57 as usize).unwrap();
+                let legal_moves: Vec<Move> = queen.get_moves(57 as usize, Rc::new(board));
+                assert_eq!(legal_moves.len(), 14);
             }
         }
 
         mod get_king_moves {            
-
+            use super::*;
             #[test]
-            fn it_should_return_a_list_of_moves_from_starting_position() {
-                assert!(true);       
+            fn it_should_return_a_list_of_moves_from_a_given_position() {
+                let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
+                let mut board: Board = helpers::generate_board(board_string);
+                board.make_move(Move::from_chess_move((String::from("e2"), String::from("e4"))));
+                board.make_move(Move::from_chess_move((String::from("e7"), String::from("e5"))));
+                board.make_move(Move::from_chess_move((String::from("e1"), String::from("e2"))));
+                board.make_move(Move::from_chess_move((String::from("h7"), String::from("h4"))));
+                let king = board.get_piece_at(75 as usize).unwrap();
+                let legal_moves: Vec<Move> = king.get_moves(75 as usize, Rc::new(board));
+                assert_eq!(legal_moves.len(), 4);     
             }
         }
     }
