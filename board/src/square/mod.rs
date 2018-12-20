@@ -1,4 +1,5 @@
 use std::rc::Rc;
+use std::fmt;
 use super::helpers;
 use super::Board;
 
@@ -12,6 +13,32 @@ pub struct Square {
 impl Square {
     pub fn new(piece: Piece) -> Square {
         Square { piece: Some(piece), is_edge: false }
+    }
+}
+
+impl fmt::Display for Square {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", match self.piece {
+            Some(p) => match p.color {
+                Color::White => match p.piece_type {
+                    PieceType::Pawn => "[P]",
+                    PieceType::Knight => "[N]",
+                    PieceType::Bishop => "[B]",
+                    PieceType::Rook => "[R]",
+                    PieceType::Queen => "[Q]",
+                    PieceType::King => "[K]",
+                },
+                Color::Black => match p.piece_type {
+                    PieceType::Pawn => "[p]",
+                    PieceType::Knight => "[n]",
+                    PieceType::Bishop => "[b]",
+                    PieceType::Rook => "[r]",
+                    PieceType::Queen => "[q]",
+                    PieceType::King => "[k]",
+                }
+            },
+            None => "[ ]",
+        })
     }
 }
 

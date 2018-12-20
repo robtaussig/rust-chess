@@ -1,5 +1,6 @@
 extern crate arrayvec;
 use arrayvec::ArrayVec;
+use std::fmt;
 pub mod square;
 pub use self::square::{ Square, Piece, Color, Move, Turn, PieceType };
 
@@ -42,6 +43,28 @@ impl Board {
                 self.set_square(chess_move.to, Some(p));
             }
         }
+    }
+}
+
+impl fmt::Display for Board {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f,"
+            {}{}{}{}{}{}{}{}
+            {}{}{}{}{}{}{}{}
+            {}{}{}{}{}{}{}{}
+            {}{}{}{}{}{}{}{}
+            {}{}{}{}{}{}{}{}
+            {}{}{}{}{}{}{}{}
+            {}{}{}{}{}{}{}{}
+            {}{}{}{}{}{}{}{}
+        ",self.squares[11 as usize], self.squares[12 as usize], self.squares[13 as usize], self.squares[14 as usize], self.squares[15 as usize], self.squares[16 as usize], self.squares[17 as usize], self.squares[18 as usize],
+        self.squares[21 as usize], self.squares[22 as usize], self.squares[23 as usize], self.squares[24 as usize], self.squares[25 as usize], self.squares[26 as usize], self.squares[27 as usize], self.squares[28 as usize],
+        self.squares[31 as usize], self.squares[32 as usize], self.squares[33 as usize], self.squares[34 as usize], self.squares[35 as usize], self.squares[36 as usize], self.squares[37 as usize], self.squares[38 as usize],
+        self.squares[41 as usize], self.squares[42 as usize], self.squares[43 as usize], self.squares[44 as usize], self.squares[45 as usize], self.squares[46 as usize], self.squares[47 as usize], self.squares[48 as usize],
+        self.squares[51 as usize], self.squares[52 as usize], self.squares[53 as usize], self.squares[54 as usize], self.squares[55 as usize], self.squares[56 as usize], self.squares[57 as usize], self.squares[58 as usize],
+        self.squares[61 as usize], self.squares[62 as usize], self.squares[63 as usize], self.squares[64 as usize], self.squares[65 as usize], self.squares[66 as usize], self.squares[67 as usize], self.squares[68 as usize],
+        self.squares[71 as usize], self.squares[72 as usize], self.squares[73 as usize], self.squares[74 as usize], self.squares[75 as usize], self.squares[76 as usize], self.squares[77 as usize], self.squares[78 as usize],
+        self.squares[81 as usize], self.squares[82 as usize], self.squares[83 as usize], self.squares[84 as usize], self.squares[85 as usize], self.squares[86 as usize], self.squares[87 as usize], self.squares[88 as usize])
     }
 }
 
