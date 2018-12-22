@@ -154,7 +154,7 @@ pub mod valid_moves {
                 _ => [0],
             },
             Color::Black => match board_index {
-                11 ... 18 => [20],
+                21 ... 28 => [20],
                 _ => [0],
             },
         };
