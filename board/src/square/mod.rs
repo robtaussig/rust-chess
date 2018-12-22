@@ -108,6 +108,12 @@ impl Move {
     }
 }
 
+impl fmt::Display for Move {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "[{},{}]",self.from, self.to)
+    }
+}
+
 #[derive(Debug)]
 #[derive(Copy, Clone)]
 pub struct Turn {
