@@ -76,5 +76,23 @@ mod tests {
             let legal_moves: Vec<Move> = get_all_legal_moves(board);
             assert_eq!(legal_moves.len(), 31);
         }
+
+        #[test]
+        fn it_doesnt_leave_player_in_check() {
+            let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
+            let mut board: Board = generate_board(board_string);
+            board.make_move(Move::from_chess_move((String::from("e2"), String::from("e4"))));
+            board.make_move(Move::from_chess_move((String::from("d7"), String::from("d5"))));
+            board.make_move(Move::from_chess_move((String::from("d1"), String::from("h5"))));
+            let legal_moves: Vec<Move> = get_all_legal_moves(board.clone());
+            let legal_moves_include_f7_pawn = match legal_moves.iter().find(|legal_move| match legal_move.from {
+                26 => true,
+                _ => false,
+            }) {
+                Some(_) => true,
+                None => false,
+            };
+            assert_eq!(legal_moves_include_f7_pawn, false);
+        }
     }
 }
