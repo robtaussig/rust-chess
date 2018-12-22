@@ -37,6 +37,17 @@ impl Board {
             }
         }
     }
+
+    pub fn clone(&self) -> Board {
+        let cloned_board: Board = Board::new(self.squares.clone(), self.current_turn.color);
+        cloned_board
+    }
+
+    pub fn test_move(&self, chess_move: Move) -> Board {
+        let mut test_board: Board = Board::new(self.squares.clone(), self.current_turn.color);
+        test_board.make_move(chess_move);
+        test_board
+    }
 }
 
 impl fmt::Display for Board {
@@ -367,6 +378,26 @@ mod tests {
                 assert_eq!(board.current_turn.color, Color::White);
                 board.make_move(Move { from: 73, to: 53 });
                 assert_eq!(board.current_turn.color, Color::Black);
+            }
+        }
+        
+        mod test_move {
+            use super::*;
+
+            #[test]
+            fn it_returns_a_new_board_with_proper_squares() {
+                let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
+                let board: Board = helpers::generate_board(board_string);
+                let tested_board: Board = board.test_move(Move { from: 75, to: 55 });
+                assert!(match board.get_piece_at(75) {
+                    Some(p) => p.piece_type == PieceType::Pawn,
+                    None => false,
+                });
+
+                assert!(match tested_board.get_piece_at(75) {
+                    Some(_) => false,
+                    None => true,
+                });
             }
         }
     }

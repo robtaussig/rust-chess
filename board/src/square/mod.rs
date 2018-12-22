@@ -70,14 +70,23 @@ impl Piece {
     }
 
     pub fn get_moves(&self, board_index: usize, board: Rc<Board>) -> Vec<Move> {
-        match self.piece_type {
-            PieceType::Pawn => valid_moves::get_pawn_moves(board_index as i8, board, self.color),
-            PieceType::Knight => valid_moves::get_knight_moves(board_index as i8, board, self.color),
-            PieceType::Bishop => valid_moves::get_bishop_moves(board_index as i8, board, self.color),
-            PieceType::Rook => valid_moves::get_rook_moves(board_index as i8, board, self.color),
-            PieceType::Queen => valid_moves::get_queen_moves(board_index as i8, board, self.color),
-            PieceType::King => valid_moves::get_king_moves(board_index as i8, board, self.color),
+        let legal_moves: Vec<Move> = match self.piece_type {
+            PieceType::Pawn => valid_moves::get_pawn_moves(board_index as i8, board.clone(), self.color),
+            PieceType::Knight => valid_moves::get_knight_moves(board_index as i8, board.clone(), self.color),
+            PieceType::Bishop => valid_moves::get_bishop_moves(board_index as i8, board.clone(), self.color),
+            PieceType::Rook => valid_moves::get_rook_moves(board_index as i8, board.clone(), self.color),
+            PieceType::Queen => valid_moves::get_queen_moves(board_index as i8, board.clone(), self.color),
+            PieceType::King => valid_moves::get_king_moves(board_index as i8, board.clone(), self.color),
         }
+            .into_iter()
+            .filter(|pre_check_move| {
+                let mut test_board: Board = board.test_move(Move::new(pre_check_move.from, pre_check_move.to));
+                test_board.current_turn.toggle();
+                !is_check(test_board)
+            })
+            .collect();
+
+        legal_moves
     }
 }
 
@@ -313,6 +322,44 @@ pub mod valid_moves {
     }
 }
 
+pub fn is_check(board: Board) -> bool {
+    let current_color: Color = board.current_turn.color;
+    let king_position: usize = board.clone().squares.into_iter()
+        .position(|square| match square.piece {
+            Some(p) => p.piece_type == PieceType::King && p.color == current_color,
+            None => false,
+        })
+        .unwrap();
+
+    match valid_moves::get_bishop_moves(king_position as i8, Rc::new(board.clone()), current_color)
+        .iter()
+        .filter_map(|bishop_move| board.get_piece_at(bishop_move.to))
+        .find(|piece| (piece.piece_type == PieceType::Bishop || piece.piece_type == PieceType::Queen) && piece.color != current_color) {
+            Some(_) => true,
+            None => match valid_moves::get_rook_moves(king_position as i8, Rc::new(board.clone()), current_color).iter()
+                        .filter_map(|rook_move| board.get_piece_at(rook_move.to))
+                        .find(|piece| (piece.piece_type == PieceType::Rook || piece.piece_type == PieceType::Queen) && piece.color != current_color) {
+                            Some(_) => true,
+                            None => match valid_moves::get_knight_moves(king_position as i8, Rc::new(board.clone()), current_color).iter()
+                                        .filter_map(|knight_move| board.get_piece_at(knight_move.to))
+                                        .find(|piece| piece.piece_type == PieceType::Knight && piece.color != current_color) {
+                                            Some(_) => true,
+                                            None => match valid_moves::get_king_moves(king_position as i8, Rc::new(board.clone()), current_color).iter()
+                                                        .filter_map(|king_move| board.get_piece_at(king_move.to))
+                                                        .find(|piece| piece.piece_type == PieceType::King && piece.color != current_color) {
+                                                            Some(_) => true,
+                                                            None => match valid_moves::get_pawn_moves(king_position as i8, Rc::new(board.clone()), current_color).iter()
+                                                                        .filter_map(|pawn_move| board.get_piece_at(pawn_move.to))
+                                                                        .find(|piece| piece.piece_type == PieceType::Pawn && piece.color != current_color) {
+                                                                            Some(_) => true,
+                                                                            None => false,
+                                                                        }
+                                                        }
+                                        }
+                        }
+        }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -414,6 +461,22 @@ mod tests {
                 let king = board.get_piece_at(75 as usize).unwrap();
                 let legal_moves: Vec<Move> = king.get_moves(75 as usize, Rc::new(board));
                 assert_eq!(legal_moves.len(), 4);     
+            }
+        }
+
+        mod is_check {
+            use super::*;
+
+            #[test]
+            fn it_finds_check() {
+                let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
+                let mut board: Board = helpers::generate_board(board_string);
+                board.make_move(Move::from_chess_move((String::from("e2"), String::from("e4"))));
+                board.make_move(Move::from_chess_move((String::from("f7"), String::from("f5"))));
+                board.make_move(Move::from_chess_move((String::from("d1"), String::from("h5"))));
+                assert_eq!(is_check(board.clone()), true);
+                board.make_move(Move::from_chess_move((String::from("g7"), String::from("g6"))));
+                assert_eq!(is_check(board.clone()), false);
             }
         }
     }

@@ -29,6 +29,20 @@ pub fn get_all_legal_moves(board: Board) -> Vec<Move> {
     legal_moves
 }
 
+struct Eval {
+    pub board: Board
+}
+
+impl Eval {
+    pub fn new(board: Board) -> Eval {
+        Eval { board }
+    }
+
+    pub fn get_best_move(&self) -> Move {
+        Move { from: 75, to: 55 }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
