@@ -5,3 +5,4 @@ authors = ["Rob Taussig <robert.taussig@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+board = { path = "../board" }

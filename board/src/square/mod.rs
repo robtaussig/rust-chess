@@ -109,6 +109,7 @@ impl Move {
 }
 
 #[derive(Debug)]
+#[derive(Copy, Clone)]
 pub struct Turn {
     pub color: Color
 }
@@ -158,7 +159,6 @@ pub mod valid_moves {
             },
         };
 
-        println!("board_index: {:?}, color: {:?}, move_directions: {:?}, capture_directions: {:?}, double_move_directions: {:?}", board_index, color, move_directions, capture_directions, double_move_directions);
         let legal_moves: Vec<Move> = move_directions.into_iter()
             .map(|step| board_index + step)
             .filter(|to| {

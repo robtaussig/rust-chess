@@ -4,6 +4,7 @@ use std::fmt;
 pub mod square;
 pub use self::square::{ Square, Piece, Color, Move, Turn, PieceType };
 
+#[derive(Clone)]
 pub struct Board {
     pub squares: ArrayVec<[Square; 100]>,
     pub current_turn: Turn,
@@ -13,14 +14,6 @@ impl Board {
 
     pub fn new(squares: ArrayVec<[Square; 100]>, color: Color) -> Board {
         Board { squares, current_turn: Turn { color } }
-    }
-
-    #[allow(unused)]
-    pub fn get_legal_moves(&self) -> Vec<Move> {
-        let mut legal_moves: Vec<Move> = Vec::new();
-
-        //TODO
-        legal_moves
     }
 
     pub fn get_piece_at(&self, index: usize) -> Option<Piece> {
@@ -268,10 +261,6 @@ mod tests {
 
     mod board_struct {
         use super::*;
-
-        mod get_legal_moves {
-
-        }
 
         mod set_square {
             use super::*;
