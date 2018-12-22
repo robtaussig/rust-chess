@@ -3,6 +3,7 @@ extern crate eval;
 
 use board::helpers::generate_board;
 use board::Move;
+use eval::get_all_legal_moves;
 
 fn main() {
     let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
