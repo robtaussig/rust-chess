@@ -136,6 +136,19 @@ pub mod helpers {
 
         Board::new(squares, Color::White)
     }
+
+    pub fn generate_board_with_current_turn(board_string: String, color: Color) -> Board {
+        if board_string.len() != 100 {
+            panic!("The board must be of length 100 to be accepted. Received board was of length {}", board_string.len());
+        }
+        let mut squares = ArrayVec::<[Square; 100]>::new();
+
+        for square in board_string.chars() {
+            squares.push(generate_square_from_string(square));
+        }
+
+        Board::new(squares, color)
+    }
 }
 
 #[cfg(test)]

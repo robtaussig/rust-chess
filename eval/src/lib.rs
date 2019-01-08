@@ -1,4 +1,7 @@
 extern crate board;
+#[macro_use] extern crate itertools;
+use std::cmp;
+use itertools::Itertools;
 use std::rc::Rc;
 use board::Move;
 use board::Board;
@@ -251,8 +254,8 @@ pub fn get_black_evaluation(board: &Board) -> u32 {
     value
 }
 
-pub fn get_current_evaluation(board: Board) -> (u32, u32) {
-    (get_white_evaluation(&board), get_black_evaluation(&board))
+pub fn get_current_evaluation(board: &Board) -> (u32, u32) {
+    (get_white_evaluation(board), get_black_evaluation(board))
 }
 
 pub fn get_best_move(board: &Board, depth: u32) -> Move {
@@ -262,7 +265,7 @@ pub fn get_best_move(board: &Board, depth: u32) -> Move {
     let best_move: &Move = legal_moves.iter()
         .map(|legal_move| {
             let next_board = board.test_move(Move { from: legal_move.from, to: legal_move.to });
-            let evaluations = get_current_evaluation(next_board);
+            let evaluations = get_current_evaluation(&next_board);
             match current_color {
                 Color::White => (legal_move, evaluations.0 as i32 - evaluations.1 as i32),
                 Color::Black => (legal_move, evaluations.1 as i32 - evaluations.0 as i32),
@@ -273,6 +276,78 @@ pub fn get_best_move(board: &Board, depth: u32) -> Move {
         .unwrap();
     
     Move::new(best_move.from, best_move.to)
+}
+
+pub fn get_best_move_rec(board: &Board, depth: u32, white_maximizer: bool, mut alpha: i32, mut beta: i32, root: bool) -> (i32, Option<Move>) {
+    let board = board.clone();
+    if depth == 0 {
+        let evaluations = get_current_evaluation(&board);
+        if white_maximizer == false {
+            return ((evaluations.0 as i32 - evaluations.1 as i32), None);
+        } else {
+            return ((evaluations.1 as i32 - evaluations.0 as i32), None);
+        }
+    }
+
+    let mut best_move: Option<Move> = None;
+    let mut best_move_value: i32 = match (board.current_turn.color, white_maximizer) {
+        (Color::White, true) => i32::max_value(),
+        (Color::Black, false) => i32::max_value(),
+        _ => i32::min_value(),
+    };
+    let mut value: i32;
+    let (board, legal_moves) = match root {
+        true => {
+            let (board, legal_moves) = get_all_legal_moves(board);
+            let legal_moves_sorted: Vec<Move> = legal_moves.into_iter()
+                .map(|legal_move| {
+                    let next_board = board.test_move(Move { from: legal_move.from, to: legal_move.to });
+                    let evaluations = get_current_evaluation(&next_board);
+                    match next_board.current_turn.color {
+                        Color::White => (legal_move, evaluations.0 as i32 - evaluations.1 as i32),
+                        Color::Black => (legal_move, evaluations.1 as i32 - evaluations.0 as i32),
+                    }
+                })
+                .sorted_by(|x, y| x.1.cmp(&y.1))
+                .map(|(legal_move, _)| legal_move)
+                .collect();
+            (board, legal_moves_sorted)
+        },
+        _ => get_all_legal_moves(board),
+    };
+    for legal_move in legal_moves.into_iter() {
+        let next_board = board.test_move(Move { from: legal_move.from, to: legal_move.to });
+        value = get_best_move_rec(&next_board, depth - 1, white_maximizer, alpha, beta, false).0;
+        
+        match (next_board.current_turn.color, white_maximizer) {
+            (Color::White, true) => {
+                if value > best_move_value {
+                    best_move_value = value;
+                    best_move = Some(legal_move);
+                }
+                alpha = cmp::max(alpha, value);
+            },
+            (Color::Black, false) => {
+                if value > best_move_value {
+                    best_move_value = value;
+                    best_move = Some(legal_move);
+                }
+                alpha = cmp::max(alpha, value);
+            },
+            _ => {
+                if value < best_move_value {
+                    best_move_value = value;
+                    best_move = Some(legal_move);
+                }
+                beta = cmp::min(beta, value);
+            },
+        };
+
+        if beta <= alpha {
+            break;
+        }
+    }
+    (best_move_value, best_move)
 }
 
 #[cfg(test)]
@@ -286,7 +361,7 @@ mod tests {
         fn it_evaluates_a_board_position() {
             let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
             let board: Board = generate_board(board_string);
-            let (white_value, black_value): (u32, u32) = get_current_evaluation(board);
+            let (white_value, black_value): (u32, u32) = get_current_evaluation(&board);
 
             assert_eq!(white_value, black_value);
         }
