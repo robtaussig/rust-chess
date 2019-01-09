@@ -367,7 +367,35 @@ mod tests {
                 let board: Board = generate_board(board_string);
                 let best_move: Move = get_best_move(&board, 1).unwrap();
 
-                let expected_best_move = Move::from_chess_move((String::from("C2"), String::from("C4")));
+                let expected_best_move = Move::from_chess_move((String::from("c2"), String::from("c4")));
+                assert_eq!((best_move.from, best_move.to), (expected_best_move.from, expected_best_move.to));
+            }
+
+            #[test]
+            fn it_blunders_pieces_with_one_depth() {
+                let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
+                let mut board: Board = generate_board(board_string);
+                board.make_move(Move::from_chess_move((String::from("d2"), String::from("d4"))));
+                board.make_move(Move::from_chess_move((String::from("e7"), String::from("e5"))));
+                board.make_move(Move::from_chess_move((String::from("h2"), String::from("h4"))));
+                board.make_move(Move::from_chess_move((String::from("h7"), String::from("h5"))));
+                board.make_move(Move::from_chess_move((String::from("c1"), String::from("g5"))));
+                let best_move: Move = get_best_move(&board, 1).unwrap();
+                let expected_best_move = Move::from_chess_move((String::from("d8"), String::from("g5")));
+                assert_eq!((best_move.from, best_move.to), (expected_best_move.from, expected_best_move.to));
+            }
+
+            #[test]
+            fn it_explores_move_tree_given_depth() {
+                let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
+                let mut board: Board = generate_board(board_string);
+                board.make_move(Move::from_chess_move((String::from("d2"), String::from("d4"))));
+                board.make_move(Move::from_chess_move((String::from("e7"), String::from("e5"))));
+                board.make_move(Move::from_chess_move((String::from("h2"), String::from("h4"))));
+                board.make_move(Move::from_chess_move((String::from("h7"), String::from("h5"))));
+                board.make_move(Move::from_chess_move((String::from("c1"), String::from("g5"))));
+                let best_move: Move = get_best_move(&board, 4).unwrap();
+                let expected_best_move = Move::from_chess_move((String::from("f7"), String::from("f6")));
                 assert_eq!((best_move.from, best_move.to), (expected_best_move.from, expected_best_move.to));
             }
         }
@@ -397,7 +425,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn it_finds_tweny_legal_moves_for_white_from_initial_position() {
+        fn it_finds_twenty_legal_moves_for_white_from_initial_position() {
             let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
             let board: Board = generate_board(board_string);
             let legal_moves = get_all_legal_moves(&board);
@@ -405,7 +433,7 @@ mod tests {
         }
 
         #[test]
-        fn it_finds_tweny_legal_moves_for_black_after_white_moves() {
+        fn it_finds_twenty_legal_moves_for_black_after_white_moves() {
             let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
             let mut board: Board = generate_board(board_string);
             board.make_move(Move::from_chess_move((String::from("e2"), String::from("e4"))));
