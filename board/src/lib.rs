@@ -8,6 +8,7 @@ pub use self::square::{ Square, Piece, Color, Move, Turn, PieceType };
 pub struct Board {
     pub squares: ArrayVec<[Square; 100]>,
     pub current_turn: Turn,
+    board_string: String,
 }
 
 impl Board {
@@ -23,14 +24,14 @@ impl Board {
             squares.push(helpers::generate_square_from_string(square));
         }
 
-        Board { squares, current_turn: Turn { color: current_color } }
+        Board { squares, current_turn: Turn { color: current_color }, board_string }
     }
 
     pub fn get_piece_at(&self, index: usize) -> Option<Piece> {
         self.squares[index].piece
     }
 
-    pub fn set_square(&mut self, index: usize, piece: Option<Piece>) {
+    fn set_square(&mut self, index: usize, piece: Option<Piece>) {
         match piece {
             Some(p) => self.squares[index] = Square::new(p),
             None => self.squares[index] = Square { piece: None, is_edge: false },
@@ -46,10 +47,11 @@ impl Board {
                 self.set_square(chess_move.to, Some(p));
             }
         }
+        //Update board_string
     }
 
     pub fn clone(&self) -> Board {
-        Board { squares: self.squares.clone(), current_turn: self.current_turn }
+        Board { squares: self.squares.clone(), current_turn: self.current_turn, board_string: self.board_string.clone() }
     }
 
     pub fn test_move(&self, chess_move: Move) -> Board {
