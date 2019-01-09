@@ -373,7 +373,7 @@ mod tests {
             #[test]
             fn it_should_return_a_list_of_moves_from_a_given_position() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-                let mut board: Board = helpers::generate_board(board_string);
+                let mut board: Board = Board::new(board_string, Color::White);
                 board.make_move(Move::from_chess_move((String::from("h2"), String::from("h4"))));
                 board.make_move(Move::from_chess_move((String::from("e7"), String::from("e5"))));
                 board.make_move(Move::from_chess_move((String::from("g2"), String::from("g4"))));
@@ -392,7 +392,7 @@ mod tests {
             #[test]
             fn it_should_return_a_list_of_moves_from_a_given_position() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-                let board: Board = helpers::generate_board(board_string);
+                let board: Board = Board::new(board_string, Color::White);
                 let knight = board.get_piece_at(helpers::square_to_index(String::from("g1")) as usize).unwrap();
                 let legal_moves: Vec<Move> = knight.get_moves(helpers::square_to_index(String::from("g1")) as usize, Rc::new(board));
                 assert_eq!(legal_moves.len(), 2);
@@ -405,7 +405,7 @@ mod tests {
             #[test]
             fn it_should_return_a_list_of_moves_from_a_given_position() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-                let mut board: Board = helpers::generate_board(board_string);
+                let mut board: Board = Board::new(board_string, Color::White);
                 board.make_move(Move::from_chess_move((String::from("e2"), String::from("e4"))));
                 board.make_move(Move::from_chess_move((String::from("e7"), String::from("e5"))));
                 let bishop = board.get_piece_at(helpers::square_to_index(String::from("f1")) as usize).unwrap();
@@ -420,7 +420,7 @@ mod tests {
             #[test]
             fn it_should_return_a_list_of_moves_from_a_given_position() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-                let mut board: Board = helpers::generate_board(board_string);
+                let mut board: Board = Board::new(board_string, Color::White);
                 board.make_move(Move::from_chess_move((String::from("h2"), String::from("h4"))));
                 board.make_move(Move::from_chess_move((String::from("e7"), String::from("e5"))));
                 board.make_move(Move::from_chess_move((String::from("g1"), String::from("f3"))));
@@ -437,7 +437,7 @@ mod tests {
             #[test]
             fn it_should_return_a_list_of_moves_from_a_given_position() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-                let mut board: Board = helpers::generate_board(board_string);
+                let mut board: Board = Board::new(board_string, Color::White);
                 board.make_move(Move::from_chess_move((String::from("e2"), String::from("e4"))));
                 board.make_move(Move::from_chess_move((String::from("e7"), String::from("e5"))));
                 board.make_move(Move::from_chess_move((String::from("d1"), String::from("g4"))));
@@ -453,7 +453,7 @@ mod tests {
             #[test]
             fn it_should_return_a_list_of_moves_from_a_given_position() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-                let mut board: Board = helpers::generate_board(board_string);
+                let mut board: Board = Board::new(board_string, Color::White);
                 board.make_move(Move::from_chess_move((String::from("e2"), String::from("e4"))));
                 board.make_move(Move::from_chess_move((String::from("e7"), String::from("e5"))));
                 board.make_move(Move::from_chess_move((String::from("e1"), String::from("e2"))));
@@ -470,7 +470,7 @@ mod tests {
             #[test]
             fn it_finds_check() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-                let mut board: Board = helpers::generate_board(board_string);
+                let mut board: Board = Board::new(board_string, Color::White);
                 board.make_move(Move::from_chess_move((String::from("e2"), String::from("e4"))));
                 board.make_move(Move::from_chess_move((String::from("f7"), String::from("f5"))));
                 board.make_move(Move::from_chess_move((String::from("d1"), String::from("h5"))));

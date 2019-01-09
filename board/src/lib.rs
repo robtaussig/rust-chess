@@ -12,8 +12,18 @@ pub struct Board {
 
 impl Board {
 
-    pub fn new(squares: ArrayVec<[Square; 100]>, color: Color) -> Board {
-        Board { squares, current_turn: Turn { color } }
+    pub fn new(board_string: String, current_color: Color) -> Board {
+        if board_string.len() != 100 {
+            panic!("The board must be of length 100 to be accepted. Received board was of length {}", board_string.len());
+        }
+
+        let mut squares = ArrayVec::<[Square; 100]>::new();
+
+        for square in board_string.chars() {
+            squares.push(helpers::generate_square_from_string(square));
+        }
+
+        Board { squares, current_turn: Turn { color: current_color } }
     }
 
     pub fn get_piece_at(&self, index: usize) -> Option<Piece> {
@@ -39,12 +49,11 @@ impl Board {
     }
 
     pub fn clone(&self) -> Board {
-        let cloned_board: Board = Board::new(self.squares.clone(), self.current_turn.color);
-        cloned_board
+        Board { squares: self.squares.clone(), current_turn: self.current_turn }
     }
 
     pub fn test_move(&self, chess_move: Move) -> Board {
-        let mut test_board: Board = Board::new(self.squares.clone(), self.current_turn.color);
+        let mut test_board = self.clone();
         test_board.make_move(chess_move);
         test_board
     }
@@ -122,32 +131,6 @@ pub mod helpers {
             '-' => Square{ piece: None, is_edge: false },
             _ => panic!("Received piece char other than accepted values")
         }
-    }
-
-    pub fn generate_board(board_string: String) -> Board {
-        if board_string.len() != 100 {
-            panic!("The board must be of length 100 to be accepted. Received board was of length {}", board_string.len());
-        }
-        let mut squares = ArrayVec::<[Square; 100]>::new();
-
-        for square in board_string.chars() {
-            squares.push(generate_square_from_string(square));
-        }
-
-        Board::new(squares, Color::White)
-    }
-
-    pub fn generate_board_with_current_turn(board_string: String, color: Color) -> Board {
-        if board_string.len() != 100 {
-            panic!("The board must be of length 100 to be accepted. Received board was of length {}", board_string.len());
-        }
-        let mut squares = ArrayVec::<[Square; 100]>::new();
-
-        for square in board_string.chars() {
-            squares.push(generate_square_from_string(square));
-        }
-
-        Board::new(squares, color)
     }
 }
 
@@ -231,27 +214,27 @@ mod tests {
         #[should_panic]
         fn it_panics_when_board_is_missing_square() {
             let board_string_missing_one = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR0000000000");
-            helpers::generate_board(board_string_missing_one);
+            Board::new(board_string_missing_one, Color::White);
         }
 
         #[test]
         #[should_panic]
         fn it_panics_when_board_has_too_many_squares() {
             let board_string_missing_one = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR000000000000");
-            helpers::generate_board(board_string_missing_one);
+            Board::new(board_string_missing_one, Color::White);
         }
 
         #[test]
         #[should_panic]
         fn it_panics_when_board_has_unknown_piece() {
             let board_string_missing_one = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNzQKBNR0000000000");
-            helpers::generate_board(board_string_missing_one);
+            Board::new(board_string_missing_one, Color::White);
         }
 
         #[test]
         fn it_generates_board_with_proper_inputs() {
             let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-            let board: Board = helpers::generate_board(board_string);
+            let board: Board = Board::new(board_string, Color::White);
             assert_eq!(board.squares.len(), 100);
         }
     }
@@ -293,14 +276,14 @@ mod tests {
             #[should_panic]
             fn it_panics_if_move_involves_invalid_square() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-                let mut board: Board = helpers::generate_board(board_string);
+                let mut board: Board = Board::new(board_string, Color::White);
                 board.set_square(101, None);
             }
 
             #[test]
             fn it_sets_the_target_index_to_piece() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-                let mut board: Board = helpers::generate_board(board_string);
+                let mut board: Board = Board::new(board_string, Color::White);
                 assert!(match board.get_piece_at(15) {
                     Some(p) => p == Piece { piece_type: PieceType::King, color: Color::Black },
                     None => false,
@@ -345,7 +328,7 @@ mod tests {
             #[should_panic]
             fn it_panics_if_moves_involve_invalid_squares() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-                let mut board: Board = helpers::generate_board(board_string);
+                let mut board: Board = Board::new(board_string, Color::White);
                 board.make_move(Move { from: 75, to: 150 });
             }
 
@@ -353,14 +336,14 @@ mod tests {
             #[should_panic]
             fn it_panics_if_from_square_is_not_a_piece() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-                let mut board: Board = helpers::generate_board(board_string);
+                let mut board: Board = Board::new(board_string, Color::White);
                 board.make_move(Move { from: 65, to: 55 });
             }
 
             #[test]
             fn the_from_square_has_none_piece_after_move() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-                let mut board: Board = helpers::generate_board(board_string);
+                let mut board: Board = Board::new(board_string, Color::White);
                 board.make_move(Move { from: 75, to: 55 });
                 assert_eq!(board.get_piece_at(75), None);
             }
@@ -368,7 +351,7 @@ mod tests {
             #[test]
             fn the_to_square_has_the_correct_piece_after_move() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-                let mut board: Board = helpers::generate_board(board_string);
+                let mut board: Board = Board::new(board_string, Color::White);
                 board.make_move(Move { from: 75, to: 55 });
                 assert!(match board.get_piece_at(55) {
                     Some(p) => p == Piece { piece_type: PieceType::Pawn, color: Color::White },
@@ -379,7 +362,7 @@ mod tests {
             #[test]
             fn it_toggles_current_turn_after_each_move() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-                let mut board: Board = helpers::generate_board(board_string);
+                let mut board: Board = Board::new(board_string, Color::White);
                 assert_eq!(board.current_turn.color, Color::White);
                 board.make_move(Move { from: 75, to: 55 });
                 assert_eq!(board.current_turn.color, Color::Black);
@@ -400,7 +383,7 @@ mod tests {
             #[test]
             fn it_returns_a_new_board_with_proper_squares() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-                let board: Board = helpers::generate_board(board_string);
+                let board: Board = Board::new(board_string, Color::White);
                 let tested_board: Board = board.test_move(Move { from: 75, to: 55 });
                 assert!(match board.get_piece_at(75) {
                     Some(p) => p.piece_type == PieceType::Pawn,

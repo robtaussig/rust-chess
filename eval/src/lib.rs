@@ -5,7 +5,6 @@ use itertools::Itertools;
 use std::rc::Rc;
 use board::Move;
 use board::Board;
-use board::helpers::generate_board;
 use board::square::Color;
 use board::Piece;
 use board::PieceType;
@@ -194,7 +193,7 @@ pub fn get_all_legal_moves(board: &Board) -> Vec<Move> {
             None => false,
         })
         .flat_map(|(i, square)| {
-            let test_board: Board = Board::new(board.squares.clone(), board.current_turn.color);
+            let test_board = board.clone();
             square.piece.unwrap().get_moves(i, Rc::new(test_board))
         })
         .collect();
@@ -352,7 +351,7 @@ mod tests {
         #[test]
         fn it_evaluates_a_board_position() {
             let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-            let board: Board = generate_board(board_string);
+            let board: Board = Board::new(board_string, Color::White);
             let (white_value, black_value): (u32, u32) = get_snapshot_evaluation(&board);
 
             assert_eq!(white_value, black_value);
@@ -364,7 +363,7 @@ mod tests {
             #[test]
             fn it_gives_best_move_with_one_depth() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-                let board: Board = generate_board(board_string);
+                let board: Board = Board::new(board_string, Color::White);
                 let best_move: Move = get_best_move(&board, 1).unwrap();
 
                 let expected_best_move = Move::from_chess_move((String::from("c2"), String::from("c4")));
@@ -374,7 +373,7 @@ mod tests {
             #[test]
             fn it_blunders_pieces_with_one_depth() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-                let mut board: Board = generate_board(board_string);
+                let mut board: Board = Board::new(board_string, Color::White);
                 board.make_move(Move::from_chess_move((String::from("d2"), String::from("d4"))));
                 board.make_move(Move::from_chess_move((String::from("e7"), String::from("e5"))));
                 board.make_move(Move::from_chess_move((String::from("h2"), String::from("h4"))));
@@ -388,7 +387,7 @@ mod tests {
             #[test]
             fn it_explores_move_tree_given_depth() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-                let mut board: Board = generate_board(board_string);
+                let mut board: Board = Board::new(board_string, Color::White);
                 board.make_move(Move::from_chess_move((String::from("d2"), String::from("d4"))));
                 board.make_move(Move::from_chess_move((String::from("e7"), String::from("e5"))));
                 board.make_move(Move::from_chess_move((String::from("h2"), String::from("h4"))));
@@ -406,7 +405,7 @@ mod tests {
             #[test]
             fn it_gets_the_value_for_whites_starting_position() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-                let board: Board = generate_board(board_string);
+                let board: Board = Board::new(board_string, Color::White);
                 let white_value: u32 = get_white_evaluation(&board);
                 assert_eq!(white_value, 14420);
             }
@@ -414,7 +413,7 @@ mod tests {
             #[test]
             fn it_gets_the_value_for_blacks_starting_position() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-                let board: Board = generate_board(board_string);
+                let board: Board = Board::new(board_string, Color::White);
                 let black_value: u32 = get_black_evaluation(&board);
                 assert_eq!(black_value, 14420);
             }
@@ -427,7 +426,7 @@ mod tests {
         #[test]
         fn it_finds_twenty_legal_moves_for_white_from_initial_position() {
             let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-            let board: Board = generate_board(board_string);
+            let board: Board = Board::new(board_string, Color::White);
             let legal_moves = get_all_legal_moves(&board);
             assert_eq!(legal_moves.len(), 20);
         }
@@ -435,7 +434,7 @@ mod tests {
         #[test]
         fn it_finds_twenty_legal_moves_for_black_after_white_moves() {
             let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-            let mut board: Board = generate_board(board_string);
+            let mut board: Board = Board::new(board_string, Color::White);
             board.make_move(Move::from_chess_move((String::from("e2"), String::from("e4"))));
             let legal_moves = get_all_legal_moves(&board);
             assert_eq!(legal_moves.len(), 20);
@@ -444,7 +443,7 @@ mod tests {
         #[test]
         fn it_finds_capture_moves_for_pawns() {
             let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-            let mut board: Board = generate_board(board_string);
+            let mut board: Board = Board::new(board_string, Color::White);
             board.make_move(Move::from_chess_move((String::from("e2"), String::from("e4"))));
             board.make_move(Move::from_chess_move((String::from("d7"), String::from("d5"))));
             let legal_moves = get_all_legal_moves(&board);
@@ -454,7 +453,7 @@ mod tests {
         #[test]
         fn it_doesnt_leave_player_in_check() {
             let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
-            let mut board: Board = generate_board(board_string);
+            let mut board: Board = Board::new(board_string, Color::White);
             board.make_move(Move::from_chess_move((String::from("e2"), String::from("e4"))));
             board.make_move(Move::from_chess_move((String::from("d7"), String::from("d5"))));
             board.make_move(Move::from_chess_move((String::from("d1"), String::from("h5"))));
