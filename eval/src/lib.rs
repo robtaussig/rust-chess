@@ -174,11 +174,84 @@ const ROOK_VALUE: u32 = 500;
 const QUEEN_VALUE: u32 = 900;
 const KING_VALUE: u32 = 10000;
 
-pub fn get_best_move(board: &Board, depth: u32) -> Option<Move> {
-    let is_white_maximizer = board.current_turn.color == Color::White;
-    let mut evaluation_cache: HashMap<String, (u32, i32)> = HashMap::new();
-    let min_max_evaluation = min_max_evaluation(board, depth, is_white_maximizer, i32::min_value(), i32::max_value(), true, &mut evaluation_cache);
-    min_max_evaluation.1
+pub struct Eval {
+    cache: HashMap<String, (u32, i32)>
+}
+
+impl Eval {
+    pub fn new(board: &Board, depth: u32) -> Option<Move> {
+        let mut evaluation = Eval { cache: HashMap::new() };
+        evaluation.get_best_move(board, depth)
+    }
+
+    fn get_best_move(&mut self, board: &Board, depth: u32) -> Option<Move> {
+        let is_white_maximizer = board.current_turn.color == Color::White;
+        let mut evaluation_cache: HashMap<String, (u32, i32)> = HashMap::new();
+        let min_max_evaluation = self.min_max_evaluation(board, depth, is_white_maximizer, i32::min_value(), i32::max_value(), true);
+        min_max_evaluation.1
+    }
+
+    fn min_max_evaluation(&mut self, board: &Board, depth: u32, white_maximizer: bool, alpha: i32, beta: i32, root: bool) -> (i32, Option<Move>) {
+        if let Some(cached_result) = self.cache.get(&board.board_string_with_turn_bit) {
+            let (cached_depth, best_move_value) = cached_result;
+            if cached_depth >= &depth {
+                return (best_move_value.clone(), None);
+            }
+        }
+        
+        if depth == 0 {
+            let evaluations = get_snapshot_evaluation(&board);
+            if white_maximizer == false {
+                return ((evaluations.0 as i32 - evaluations.1 as i32), None);
+            } else {
+                return ((evaluations.1 as i32 - evaluations.0 as i32), None);
+            }
+        }
+        
+        let legal_moves = match root {
+            true => get_legal_moves_sorted_by_strength(&board),
+            _ => get_all_legal_moves(&board),
+        };
+
+        let (best_move_value, best_move) = self.get_best_move_with_value(&board, depth, legal_moves, white_maximizer, alpha, beta);
+        self.cache.insert(board.board_string_with_turn_bit.clone(), (depth, best_move_value));
+        (best_move_value, best_move)
+    }
+
+    fn get_best_move_with_value(&mut self, board: &Board, depth: u32, legal_moves: Vec<Move>, white_maximizer:bool, mut alpha: i32, mut beta: i32) -> (i32, Option<Move>) {
+        let mut best_move: Option<Move> = None;
+        let mut best_move_value = match is_maximizer(board, white_maximizer) {
+            true => i32::max_value(),
+            false => i32::min_value()
+        };
+
+        for legal_move in legal_moves.into_iter() {
+            let next_board = board.test_move(Move { from: legal_move.from, to: legal_move.to });
+            let value: i32 = self.min_max_evaluation(&next_board, depth - 1, white_maximizer, alpha, beta, false).0;
+
+            match is_maximizer(&next_board, white_maximizer) {
+                true => {
+                    if value > best_move_value {
+                        best_move_value = value;
+                        best_move = Some(legal_move);
+                    }
+                    alpha = cmp::max(alpha, value);
+                },
+                false => {
+                    if value < best_move_value {
+                        best_move_value = value;
+                        best_move = Some(legal_move);
+                    }
+                    beta = cmp::min(beta, value);
+                },
+            };
+            //FIX -- not working
+            if beta <= alpha {
+                break;
+            }
+        }
+        (best_move_value, best_move)
+    }
 }
 
 pub fn get_all_legal_moves(board: &Board) -> Vec<Move> {
@@ -201,66 +274,6 @@ pub fn get_all_legal_moves(board: &Board) -> Vec<Move> {
         .collect();
 
     legal_moves
-}
-
-fn min_max_evaluation(board: &Board, depth: u32, white_maximizer: bool, alpha: i32, beta: i32, root: bool, mut cache: &HashMap<String, (u32, i32)>) -> (i32, Option<Move>) {
-    if let Some(cached_result) = cache.get(&board.board_string_with_turn_bit) {
-        let (cached_depth, best_move_value) = cached_result;
-        return (best_move_value.clone(), None);
-    }
-    
-    if depth == 0 {
-        let evaluations = get_snapshot_evaluation(&board);
-        if white_maximizer == false {
-            return ((evaluations.0 as i32 - evaluations.1 as i32), None);
-        } else {
-            return ((evaluations.1 as i32 - evaluations.0 as i32), None);
-        }
-    }
-    
-    let legal_moves = match root {
-        true => get_legal_moves_sorted_by_strength(&board),
-        _ => get_all_legal_moves(&board),
-    };
-
-    let (best_move_value, best_move) = get_best_move_with_value(&board, depth, legal_moves, white_maximizer, alpha, beta, cache);
-    //TODO: Cache here
-    (best_move_value, best_move)
-}
-
-fn get_best_move_with_value(board: &Board, depth: u32, legal_moves: Vec<Move>, white_maximizer:bool, mut alpha: i32, mut beta: i32, mut cache: &HashMap<String, (u32, i32)>) -> (i32, Option<Move>) {
-    let mut best_move: Option<Move> = None;
-    let mut best_move_value = match is_maximizer(board, white_maximizer) {
-        true => i32::max_value(),
-        false => i32::min_value()
-    };
-
-    for legal_move in legal_moves.into_iter() {
-        let next_board = board.test_move(Move { from: legal_move.from, to: legal_move.to });
-        let value: i32 = min_max_evaluation(&next_board, depth - 1, white_maximizer, alpha, beta, false, cache).0;
-
-        match is_maximizer(&next_board, white_maximizer) {
-            true => {
-                if value > best_move_value {
-                    best_move_value = value;
-                    best_move = Some(legal_move);
-                }
-                alpha = cmp::max(alpha, value);
-            },
-            false => {
-                if value < best_move_value {
-                    best_move_value = value;
-                    best_move = Some(legal_move);
-                }
-                beta = cmp::min(beta, value);
-            },
-        };
-
-        if beta <= alpha {
-            break;
-        }
-    }
-    (best_move_value, best_move)
 }
 
 fn is_maximizer(board: &Board, white_maximizer: bool) -> bool {
@@ -372,7 +385,7 @@ mod tests {
             fn it_gives_best_move_with_one_depth() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
                 let board: Board = Board::new(board_string, Color::White);
-                let best_move: Move = get_best_move(&board, 1).unwrap();
+                let best_move: Move = Eval::new(&board, 1).unwrap();
 
                 let expected_best_move = Move::from_chess_move((String::from("c2"), String::from("c4")));
                 assert_eq!((best_move.from, best_move.to), (expected_best_move.from, expected_best_move.to));
@@ -387,7 +400,7 @@ mod tests {
                 board.make_move(Move::from_chess_move((String::from("h2"), String::from("h4"))));
                 board.make_move(Move::from_chess_move((String::from("h7"), String::from("h5"))));
                 board.make_move(Move::from_chess_move((String::from("c1"), String::from("g5"))));
-                let best_move: Move = get_best_move(&board, 1).unwrap();
+                let best_move: Move = Eval::new(&board, 1).unwrap();
                 let expected_best_move = Move::from_chess_move((String::from("d8"), String::from("g5")));
                 assert_eq!((best_move.from, best_move.to), (expected_best_move.from, expected_best_move.to));
             }
@@ -401,7 +414,7 @@ mod tests {
                 board.make_move(Move::from_chess_move((String::from("h2"), String::from("h4"))));
                 board.make_move(Move::from_chess_move((String::from("h7"), String::from("h5"))));
                 board.make_move(Move::from_chess_move((String::from("c1"), String::from("g5"))));
-                let best_move: Move = get_best_move(&board, 4).unwrap();
+                let best_move: Move = Eval::new(&board, 4).unwrap();
                 let expected_best_move = Move::from_chess_move((String::from("f7"), String::from("f6")));
                 assert_eq!((best_move.from, best_move.to), (expected_best_move.from, expected_best_move.to));
             }
