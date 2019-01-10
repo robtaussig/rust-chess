@@ -8,7 +8,7 @@ pub use self::square::{ Square, Piece, Color, Move, Turn, PieceType };
 pub struct Board {
     pub squares: ArrayVec<[Square; 100]>,
     pub current_turn: Turn,
-    board_string: String,
+    pub board_string_with_turn_bit: String,
 }
 
 impl Board {
@@ -24,7 +24,12 @@ impl Board {
             squares.push(helpers::generate_square_from_string(square));
         }
 
-        Board { squares, current_turn: Turn { color: current_color }, board_string }
+        let mut board_string_with_turn_bit = board_string.clone();
+        board_string_with_turn_bit.push(match current_color {
+            Color::White => '1',
+            Color::Black => '0',
+        });
+        Board { squares, current_turn: Turn { color: current_color }, board_string_with_turn_bit }
     }
 
     pub fn get_piece_at(&self, index: usize) -> Option<Piece> {
@@ -38,7 +43,36 @@ impl Board {
         }
     }
 
+    fn get_piece_char_at(&self, index: usize) -> char {
+        let square = &self.squares[index];
+        match square.piece {
+            Some(p) => match p.color {
+                Color::White => match p.piece_type {
+                    PieceType::Pawn => 'P',
+                    PieceType::Knight => 'N',
+                    PieceType::Bishop => 'B',
+                    PieceType::Rook => 'R',
+                    PieceType::Queen => 'Q',
+                    PieceType::King => 'K',
+                },
+                Color::Black => match p.piece_type {
+                    PieceType::Pawn => 'p',
+                    PieceType::Knight => 'n',
+                    PieceType::Bishop => 'b',
+                    PieceType::Rook => 'r',
+                    PieceType::Queen => 'q',
+                    PieceType::King => 'k',
+                }
+            },
+            None => match square.is_edge {
+                true => '0',
+                false => '-'
+            }
+        }
+    }
+
     pub fn make_move(&mut self, chess_move: Move) {
+        let from_piece_char = self.get_piece_char_at(chess_move.from);
         match self.get_piece_at(chess_move.from) {
             None => panic!("There is no piece on the square form which the move is being made: {:?}", self.squares[chess_move.from]),
             Some(p) => {
@@ -47,11 +81,28 @@ impl Board {
                 self.set_square(chess_move.to, Some(p));
             }
         }
-        //Update board_string
+        let next_board_string: String = self.board_string_with_turn_bit.chars().enumerate()
+            .map(|(i, c)| {
+                if i == 100 {
+                    match self.current_turn.color {
+                        Color::White => '1',
+                        Color::Black => '0',
+                    }
+                } else if i == chess_move.from {
+                    '-'
+                } else if i == chess_move.to {
+                    from_piece_char
+                } else {
+                    c
+                }
+            })
+            .collect();
+
+        self.board_string_with_turn_bit = next_board_string;
     }
 
     pub fn clone(&self) -> Board {
-        Board { squares: self.squares.clone(), current_turn: self.current_turn, board_string: self.board_string.clone() }
+        Board { squares: self.squares.clone(), current_turn: self.current_turn, board_string_with_turn_bit: self.board_string_with_turn_bit.clone() }
     }
 
     pub fn test_move(&self, chess_move: Move) -> Board {
@@ -331,7 +382,7 @@ mod tests {
             fn it_panics_if_moves_involve_invalid_squares() {
                 let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
                 let mut board: Board = Board::new(board_string, Color::White);
-                board.make_move(Move { from: 75, to: 150 });
+                board.make_move(Move { from: 75, to: 150 });                
             }
 
             #[test]

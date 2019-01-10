@@ -1,4 +1,5 @@
 extern crate board;
+use std::collections::HashMap;
 #[macro_use] extern crate itertools;
 use std::cmp;
 use itertools::Itertools;
@@ -175,7 +176,8 @@ const KING_VALUE: u32 = 10000;
 
 pub fn get_best_move(board: &Board, depth: u32) -> Option<Move> {
     let is_white_maximizer = board.current_turn.color == Color::White;
-    let min_max_evaluation = min_max_evaluation(board, depth, is_white_maximizer, i32::min_value(), i32::max_value(), true);
+    let mut evaluation_cache: HashMap<String, (u32, i32)> = HashMap::new();
+    let min_max_evaluation = min_max_evaluation(board, depth, is_white_maximizer, i32::min_value(), i32::max_value(), true, &mut evaluation_cache);
     min_max_evaluation.1
 }
 
@@ -201,7 +203,12 @@ pub fn get_all_legal_moves(board: &Board) -> Vec<Move> {
     legal_moves
 }
 
-fn min_max_evaluation(board: &Board, depth: u32, white_maximizer: bool, alpha: i32, beta: i32, root: bool) -> (i32, Option<Move>) {
+fn min_max_evaluation(board: &Board, depth: u32, white_maximizer: bool, alpha: i32, beta: i32, root: bool, mut cache: &HashMap<String, (u32, i32)>) -> (i32, Option<Move>) {
+    if let Some(cached_result) = cache.get(&board.board_string_with_turn_bit) {
+        let (cached_depth, best_move_value) = cached_result;
+        return (best_move_value.clone(), None);
+    }
+    
     if depth == 0 {
         let evaluations = get_snapshot_evaluation(&board);
         if white_maximizer == false {
@@ -216,10 +223,12 @@ fn min_max_evaluation(board: &Board, depth: u32, white_maximizer: bool, alpha: i
         _ => get_all_legal_moves(&board),
     };
 
-    get_best_move_with_value(&board, depth, legal_moves, white_maximizer, alpha, beta)
+    let (best_move_value, best_move) = get_best_move_with_value(&board, depth, legal_moves, white_maximizer, alpha, beta, cache);
+    //TODO: Cache here
+    (best_move_value, best_move)
 }
 
-fn get_best_move_with_value(board: &Board, depth: u32, legal_moves: Vec<Move>, white_maximizer:bool, mut alpha: i32, mut beta: i32) -> (i32, Option<Move>) {
+fn get_best_move_with_value(board: &Board, depth: u32, legal_moves: Vec<Move>, white_maximizer:bool, mut alpha: i32, mut beta: i32, mut cache: &HashMap<String, (u32, i32)>) -> (i32, Option<Move>) {
     let mut best_move: Option<Move> = None;
     let mut best_move_value = match is_maximizer(board, white_maximizer) {
         true => i32::max_value(),
@@ -228,7 +237,7 @@ fn get_best_move_with_value(board: &Board, depth: u32, legal_moves: Vec<Move>, w
 
     for legal_move in legal_moves.into_iter() {
         let next_board = board.test_move(Move { from: legal_move.from, to: legal_move.to });
-        let value: i32 = min_max_evaluation(&next_board, depth - 1, white_maximizer, alpha, beta, false).0;
+        let value: i32 = min_max_evaluation(&next_board, depth - 1, white_maximizer, alpha, beta, false, cache).0;
 
         match is_maximizer(&next_board, white_maximizer) {
             true => {
@@ -251,7 +260,6 @@ fn get_best_move_with_value(board: &Board, depth: u32, legal_moves: Vec<Move>, w
             break;
         }
     }
-
     (best_move_value, best_move)
 }
 
