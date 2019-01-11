@@ -185,51 +185,50 @@ impl Eval {
     }
 
     fn get_best_move(&mut self, board: &Board, depth: u32) -> Option<Move> {
-        let is_white_maximizer = board.current_turn.color == Color::White;
         let mut evaluation_cache: HashMap<String, (u32, i32)> = HashMap::new();
-        let min_max_evaluation = self.min_max_evaluation(board, depth, is_white_maximizer, i32::min_value(), i32::max_value(), true);
+        let min_max_evaluation = self.min_max_evaluation(board, depth, true, i32::min_value(), i32::max_value(), true);
         min_max_evaluation.1
     }
 
-    fn min_max_evaluation(&mut self, board: &Board, depth: u32, white_maximizer: bool, alpha: i32, beta: i32, root: bool) -> (i32, Option<Move>) {
+    fn min_max_evaluation(&mut self, board: &Board, depth: u32, is_maximizer: bool, alpha: i32, beta: i32, root: bool) -> (i32, Option<Move>) {
         if let Some(cached_result) = self.cache.get(&board.board_string_with_turn_bit) {
             let (cached_depth, best_move_value) = cached_result;
-            if cached_depth >= &depth {
-                return (best_move_value.clone(), None);
-            }
+            return (best_move_value.clone(), None);
         }
         
         if depth == 0 {
             let evaluations = get_snapshot_evaluation(&board);
-            if white_maximizer == false {
-                return ((evaluations.0 as i32 - evaluations.1 as i32), None);
+            let value = match board.current_turn.color {
+                Color::White => evaluations.0 as i32 - evaluations.1 as i32,
+                Color::Black => evaluations.1 as i32 - evaluations.0 as i32,
+            };
+
+            if is_maximizer == true {
+                return (value, None);
             } else {
-                return ((evaluations.1 as i32 - evaluations.0 as i32), None);
+                return (-value, None);
             }
         }
-        
-        let legal_moves = match root {
-            true => get_legal_moves_sorted_by_strength(&board),
-            _ => get_all_legal_moves(&board),
-        };
 
-        let (best_move_value, best_move) = self.get_best_move_with_value(&board, depth, legal_moves, white_maximizer, alpha, beta);
+        let legal_moves = get_legal_moves_sorted_by_strength(&board);
+
+        let (best_move_value, best_move) = self.get_best_move_with_value(&board, depth, legal_moves, is_maximizer, alpha, beta);
         self.cache.insert(board.board_string_with_turn_bit.clone(), (depth, best_move_value));
         (best_move_value, best_move)
     }
 
-    fn get_best_move_with_value(&mut self, board: &Board, depth: u32, legal_moves: Vec<Move>, white_maximizer:bool, mut alpha: i32, mut beta: i32) -> (i32, Option<Move>) {
+    fn get_best_move_with_value(&mut self, board: &Board, depth: u32, legal_moves: Vec<Move>, is_maximizer:bool, mut alpha: i32, mut beta: i32) -> (i32, Option<Move>) {
         let mut best_move: Option<Move> = None;
-        let mut best_move_value = match is_maximizer(board, white_maximizer) {
-            true => i32::max_value(),
-            false => i32::min_value()
+        let mut best_move_value = match is_maximizer {
+            true => i32::min_value(),
+            false => i32::max_value()
         };
 
         for legal_move in legal_moves.into_iter() {
             let next_board = board.test_move(Move { from: legal_move.from, to: legal_move.to });
-            let value: i32 = self.min_max_evaluation(&next_board, depth - 1, white_maximizer, alpha, beta, false).0;
+            let value: i32 = self.min_max_evaluation(&next_board, depth - 1, !is_maximizer, alpha, beta, false).0;
 
-            match is_maximizer(&next_board, white_maximizer) {
+            match is_maximizer {
                 true => {
                     if value > best_move_value {
                         best_move_value = value;
@@ -245,7 +244,7 @@ impl Eval {
                     beta = cmp::min(beta, value);
                 },
             };
-            //FIX -- not working
+
             if beta <= alpha {
                 break;
             }
@@ -274,13 +273,6 @@ pub fn get_all_legal_moves(board: &Board) -> Vec<Move> {
         .collect();
 
     legal_moves
-}
-
-fn is_maximizer(board: &Board, white_maximizer: bool) -> bool {
-    match (board.current_turn.color, white_maximizer) {
-        (Color::White, true) | (Color::Black, false) => true,
-        _ => false,
-    }
 }
 
 fn get_legal_moves_sorted_by_strength(board: &Board) -> Vec<Move> {

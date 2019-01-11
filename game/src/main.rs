@@ -27,7 +27,7 @@ fn main() {
         };
         let mut board: Board = Board::new(board_string, current_color);
         let legal_moves = get_all_legal_moves(&board);
-        let evaluation = Eval::new(&board, 4);
+        let evaluation = Eval::new(&board, 5);
         println!("{}", evaluation.unwrap());
     }
 }
