@@ -192,7 +192,7 @@ impl Eval {
 
     fn min_max_evaluation(&mut self, board: &Board, depth: u32, is_maximizer: bool, alpha: i32, beta: i32, root: bool) -> (i32, Option<Move>) {
         if let Some(cached_result) = self.cache.get(&board.board_string_with_turn_bit) {
-            let (cached_depth, best_move_value) = cached_result;
+            let (cached_depth, best_move_value): (u32, i32) = *cached_result;
             return (best_move_value.clone(), None);
         }
         
