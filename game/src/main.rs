@@ -8,8 +8,11 @@ use eval::get_all_legal_moves;
 use eval::Eval;
 
 fn main() {
+    //Example: game 00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000 -w
+
     let args: Vec<String> = env::args().collect();
     if args.len() == 1 {
+        //Running binary without args -- Example of interacting with board and receiving an evaluation
         let board_string = String::from("00000000000rnbqkbnr00pppppppp00--------00--------00--------00--------00PPPPPPPP00RNBQKBNR00000000000");
         let mut board = Board::new(board_string, Color::White);
         board.make_move(Move::from_chess_move((String::from("d2"), String::from("d4"))));
